@@ -5,7 +5,6 @@ import dynamic from "next/dynamic";
 import { stations } from "@/data/stations";
 import ChartsPanel from "./ChartsPanel";
 import { trackEvent } from "@/lib/analytics";
-import ErrorDemo from "./ErrorDemo";
 
 const MapView = dynamic(() => import("./MapView"), {
   ssr: false,
@@ -87,17 +86,17 @@ export default function MapSection() {
       records_count: dataToExport.length,
     });
   };
-useEffect(() => {
-  const start = performance.now();
+  useEffect(() => {
+    const start = performance.now();
 
-  window.addEventListener("load", () => {
-    const loadTime = performance.now() - start;
+    window.addEventListener("load", () => {
+      const loadTime = performance.now() - start;
 
-    trackEvent("page_load_time", {
-      load_time_ms: Math.round(loadTime),
+      trackEvent("page_load_time", {
+        load_time_ms: Math.round(loadTime),
+      });
     });
-  });
-}, []);
+  }, []);
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       <div className="space-y-4">
@@ -173,7 +172,6 @@ useEffect(() => {
             </div>
           </div>
         </div>
-        <ErrorDemo />
       </div>
 
       <ChartsPanel station={selectedStation} />
