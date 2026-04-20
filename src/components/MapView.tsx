@@ -1,8 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  CircleMarker,
+  Popup,
+  useMapEvents,
+} from "react-leaflet";
 import { stations } from "@/data/stations";
+import { trackEvent } from "@/lib/analytics";
 
 const ukraineCenter: [number, number] = [48.3794, 31.1656];
 
@@ -25,6 +32,20 @@ interface MapViewProps {
   stationsToShow: Station[];
   selectedStation: Station | null;
   onSelectStation: (station: Station) => void;
+}
+
+function MapAnalyticsTracker() {
+  useMapEvents({
+    zoomend(event) {
+      const zoom = event.target.getZoom();
+
+      trackEvent("map_zoom", {
+        zoom_level: zoom,
+      });
+    },
+  });
+
+  return null;
 }
 
 export default function MapView({
@@ -60,6 +81,8 @@ export default function MapView({
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
+        <MapAnalyticsTracker />
+
         {stationsToShow.map((station) => {
           const color = getStationColor(station.pollutionLevel);
           const isSelected = selectedStation?.id === station.id;
@@ -78,7 +101,15 @@ export default function MapView({
                 weight: isActive ? 4 : 2,
               }}
               eventHandlers={{
-                click: () => onSelectStation(station),
+                click: () => {
+                  onSelectStation(station);
+
+                  trackEvent("map_station_click", {
+                    station_name: station.name,
+                    city: station.city,
+                    pollution_level: station.pollutionLevel,
+                  });
+                },
                 mouseover: () => setHoveredStationId(station.id),
                 mouseout: () => setHoveredStationId(null),
               }}
